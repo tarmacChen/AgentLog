@@ -1,0 +1,67 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const base = import.meta.env.BASE_URL;
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const posts = allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map((post) => ({
+    id: post.id,
+    title: post.data.title,
+    description: post.data.description,
+    tags: post.data.tags ?? [],
+    pubDate: post.data.pubDate.toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    }),
+    url: `${base}blog/${post.id}/`,
+  }));
+---
+
+<BaseLayout title="Search — AgentLog">
+  <section>
+    <ul id="results" class="space-y-8"></ul>
+    <p id="empty" class="text-gray-400 hidden">No posts match your search.</p>
+  </section>
+</BaseLayout>
+
+<script define:vars={{ posts }}>
+  const list  = document.getElementById('results');
+  const empty = document.getElementById('empty');
+
+  function render(filtered) {
+    if (filtered.length === 0) {
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    list.innerHTML = filtered.map((p) => `
+      <li>
+        <a href="${p.url}" class="group block">
+          <time class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">${p.pubDate}</time>
+          <h2 class="text-lg font-semibold mt-1 group-hover:text-blue-500 transition-colors">${p.title}</h2>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">${p.description}</p>
+          ${p.tags.length ? `
+            <div class="flex gap-2 mt-2 flex-wrap">
+              ${p.tags.map(t => `<span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">${t}</span>`).join('')}
+            </div>` : ''}
+        </a>
+      </li>
+    `).join('');
+  }
+
+  const q = new URLSearchParams(location.search).get('q') ?? '';
+  if (q) {
+    const navInput = document.getElementById('nav-search-input');
+    if (navInput) navInput.value = q;
+    render(posts.filter((p) =>
+      p.title.toLowerCase().includes(q.toLowerCase()) ||
+      p.description.toLowerCase().includes(q.toLowerCase()) ||
+      p.tags.some((t) => t.toLowerCase().includes(q.toLowerCase()))
+    ));
+  } else {
+    render(posts);
+  }
+</script>
