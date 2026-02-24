@@ -21,7 +21,7 @@ const posts = allPosts.sort(
       <ul class="space-y-8">
         {posts.map((post) => (
           <li>
-            <a href={`${base}blog/${post.id}/`} class="group block">
+            <a href={`${base}/blog/${post.id}/`} class="group block">
               <time class="text-xs text-gray-400 uppercase tracking-wide">
                 {post.data.pubDate.toLocaleDateString('en-US', {
                   year: 'numeric',
