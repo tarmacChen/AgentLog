@@ -13,55 +13,106 @@ const posts = allPosts
     description: post.data.description,
     tags: post.data.tags ?? [],
     pubDate: post.data.pubDate.toLocaleDateString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
+      year: 'numeric', month: 'short', day: 'numeric',
     }),
-    url: `${base}blog/${post.id}/`,
+    url: `${base}/blog/${post.id}/`,
   }));
 ---
 
 <BaseLayout title="Search — AgentLog">
   <section>
-    <ul id="results" class="space-y-8"></ul>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-1">Search</h1>
+    <p class="text-gray-500 dark:text-gray-400 italic mb-6">Search any article ...</p>
+
+    <!-- Search input -->
+    <div class="relative flex items-center border-2 border-blue-500 rounded-lg px-3 py-2 mb-6 bg-white dark:bg-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 shrink-0 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z" />
+      </svg>
+      <input
+        id="search-input"
+        type="text"
+        placeholder=""
+        autocomplete="off"
+        class="flex-1 bg-transparent text-gray-900 dark:text-gray-100 text-base focus:outline-none"
+      />
+      <button id="clear-btn" class="hidden text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 shrink-0 ml-2">Clear</button>
+    </div>
+
+    <!-- Result count -->
+    <p id="result-count" class="text-sm font-bold mb-4 hidden"></p>
+    <hr class="border-gray-200 dark:border-gray-700 mb-6" />
+
+    <!-- Results -->
+    <ul id="results" class="space-y-6"></ul>
     <p id="empty" class="text-gray-400 hidden">No posts match your search.</p>
   </section>
 </BaseLayout>
 
 <script define:vars={{ posts }}>
-  const list  = document.getElementById('results');
+  const input = document.getElementById('search-input');
+  const clearBtn = document.getElementById('clear-btn');
+  const resultCount = document.getElementById('result-count');
+  const list = document.getElementById('results');
   const empty = document.getElementById('empty');
 
-  function render(filtered) {
+  function highlight(text, q) {
+    if (!q) return text;
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="bg-yellow-200 dark:bg-yellow-700 text-inherit rounded px-0.5">$1</mark>');
+  }
+
+  function render(filtered, q) {
     if (filtered.length === 0) {
       list.innerHTML = '';
       empty.classList.remove('hidden');
+      resultCount.classList.add('hidden');
       return;
     }
     empty.classList.add('hidden');
+    if (q) {
+      resultCount.textContent = `${filtered.length} result${filtered.length === 1 ? '' : 's'} for ${q}`;
+      resultCount.classList.remove('hidden');
+    } else {
+      resultCount.classList.add('hidden');
+    }
     list.innerHTML = filtered.map((p) => `
-      <li>
+      <li class="border-b border-gray-100 dark:border-gray-800 pb-6">
         <a href="${p.url}" class="group block">
-          <time class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">${p.pubDate}</time>
-          <h2 class="text-lg font-semibold mt-1 group-hover:text-blue-500 transition-colors">${p.title}</h2>
-          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">${p.description}</p>
-          ${p.tags.length ? `
-            <div class="flex gap-2 mt-2 flex-wrap">
-              ${p.tags.map(t => `<span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">${t}</span>`).join('')}
-            </div>` : ''}
+          <h2 class="text-lg font-semibold text-blue-600 dark:text-blue-400 group-hover:underline mb-1">${highlight(p.title, q)}</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-300">${highlight(p.description, q)}</p>
+          <time class="text-xs text-gray-400 dark:text-gray-500 mt-1 block">${p.pubDate}</time>
         </a>
       </li>
     `).join('');
   }
 
-  const q = new URLSearchParams(location.search).get('q') ?? '';
-  if (q) {
-    const navInput = document.getElementById('nav-search-input');
-    if (navInput) navInput.value = q;
-    render(posts.filter((p) =>
-      p.title.toLowerCase().includes(q.toLowerCase()) ||
-      p.description.toLowerCase().includes(q.toLowerCase()) ||
-      p.tags.some((t) => t.toLowerCase().includes(q.toLowerCase()))
-    ));
-  } else {
-    render(posts);
+  function filter(q) {
+    if (!q) return posts;
+    const lq = q.toLowerCase();
+    return posts.filter((p) =>
+      p.title.toLowerCase().includes(lq) ||
+      p.description.toLowerCase().includes(lq) ||
+      p.tags.some((t) => t.toLowerCase().includes(lq))
+    );
   }
+
+  function update(q) {
+    clearBtn.classList.toggle('hidden', !q);
+    render(filter(q), q);
+  }
+
+  input.addEventListener('input', (e) => update(e.target.value));
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    update('');
+  });
+
+  const q = new URLSearchParams(location.search).get('q') ?? '';
+  if (q) input.value = q;
+  update(q);
+
+  input.focus();
 </script>
