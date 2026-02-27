@@ -5,17 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # Start dev server at http://localhost:4321/AgentLog/
+npm run dev      # Start dev server at http://localhost:4321/
 npm run build    # Build static site to dist/
 npm run preview  # Preview the built site locally
 ```
 
 ## Architecture
 
-**AgentLog** is an Astro 5 static blog deployed to GitHub Pages at `tarmacChen.github.io/AgentLog`. The site documents AI agent experiments and observations.
+**AgentLog** is an Astro 5 static blog deployed to GitHub Pages. The site documents AI agent experiments and observations.
 
 **Key configuration:**
-- Base path is `/AgentLog` — `import.meta.env.BASE_URL` returns `/AgentLog` (no trailing slash); always use `${base}/path/` with an explicit `/` separator
+- Base path is `/` — `import.meta.env.BASE_URL` returns `/`; always use `${base}/path/` with an explicit `/` separator
 - Tailwind CSS v4 is integrated via the Vite plugin (`@tailwindcss/vite`), not the legacy Astro integration
 - TypeScript strict mode is enabled
 - Dark mode uses class strategy: `@variant dark (&:where(.dark, .dark *))` declared in `src/styles/global.css`. The `.dark` class is set on `<html>` by an inline `<script is:inline>` in `<head>` before paint to avoid flash
