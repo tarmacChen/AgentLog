@@ -9,6 +9,7 @@ interface Props {
 
 const { title, description = 'AgentLog — a blog about AI agents and experiments', showTranslate = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const home = base || '/';
 ---
 
 <!doctype html>
@@ -34,7 +35,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <header class="py-2 sm:py-3">
       <nav class="max-w-3xl mx-auto px-4 flex items-center">
         <!-- Logo -->
-        <a href={base} class="flex items-center gap-1.5 sm:gap-2 text-xl sm:text-2xl font-bold tracking-tight hover:text-blue-400 shrink-0">
+        <a href={home} class="flex items-center gap-1.5 sm:gap-2 text-xl sm:text-2xl font-bold tracking-tight hover:text-blue-400 shrink-0">
           <img src={`${base}/images/logo.svg`} alt="AgentLog logo" class="h-6 w-6 sm:h-7 sm:w-7 block dark:hidden" />
           <img src={`${base}/images/logo-dark.svg`} alt="AgentLog logo" class="h-6 w-6 sm:h-7 sm:w-7 hidden dark:block" />
           AgentLog
