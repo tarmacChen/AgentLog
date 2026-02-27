@@ -23,7 +23,7 @@ const enContent = enPost ? await render(enPost) : null;
       <header class="not-prose mb-8">
         {post.data.heroImage && (
           <img
-            src={`${import.meta.env.BASE_URL}${post.data.heroImage}`}
+            src={`${import.meta.env.BASE_URL.replace(/\/$/, '')}${post.data.heroImage}`}
             alt={post.data.title}
             class="w-full aspect-video object-cover rounded-lg mb-6"
           />
